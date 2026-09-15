@@ -5,7 +5,27 @@ class Training:
         self.start_time = start_time
         self.duration_minutes = duration_minutes
         self.capacity = capacity
-        self.bookings = []  # список записей на эту тренировку
+        self._bookings = []
+
+    @property
+    def bookings(self):
+        return list(self._bookings)  # копия — извне список нельзя изменить напрямую
+
+    def active_bookings_count(self):
+        return len([b for b in self._bookings if b.is_active()])
+
+    def has_free_slots(self):
+        return self.active_bookings_count() < self.capacity
+
+    def has_active_booking_for(self, client):
+        return any(b.client is client and b.is_active() for b in self._bookings)
+
+    def add_booking(self, booking):
+        if not self.has_free_slots():
+            raise ValueError("Нет свободных мест на тренировку")
+        if self.has_active_booking_for(booking.client):
+            raise ValueError("У клиента уже есть активная запись на эту тренировку")
+        self._bookings.append(booking)
 
     def __str__(self):
         return f"Тренировка: {self.name} ({self.trainer.name}, {self.start_time})"

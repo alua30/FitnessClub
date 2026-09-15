@@ -3,7 +3,17 @@ class Booking:
         self.client = client
         self.training = training
         self.created_at = created_at
-        self.status = "active"  # active / cancelled
+        self._status = "active"
+
+    @property
+    def status(self):
+        return self._status
+
+    def is_active(self):
+        return self._status == "active"
+
+    def cancel(self):
+        self._status = "cancelled"
 
     def __str__(self):
-        return f"Запись: {self.client.name} → {self.training.name} [{self.status}]"
+        return f"Запись: {self.client.name} → {self.training.name} [{self._status}]"
