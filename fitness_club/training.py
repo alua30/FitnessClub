@@ -3,6 +3,7 @@ from fitness_club.attendance import Attendance
 
 class Training:
     def __init__(self, name, trainer, start_time, duration_minutes, capacity):
+        self.id = None
         self.name = name
         self.trainer = trainer
         self.start_time = start_time

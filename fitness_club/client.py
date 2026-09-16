@@ -3,6 +3,7 @@ from fitness_club.booking import Booking
 
 class Client:
     def __init__(self, name, phone, email):
+        self.id = None
         self.name = name
         self.phone = phone
         self.email = email

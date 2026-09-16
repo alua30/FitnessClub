@@ -1,5 +1,6 @@
 class Trainer:
     def __init__(self, name, specialization):
+        self.id = None
         self.name = name
         self.specialization = specialization
 
