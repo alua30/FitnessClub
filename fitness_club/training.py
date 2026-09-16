@@ -33,7 +33,9 @@ class Training:
     def register_attendance(self, booking, at):
         if booking.training is not self:
             raise ValueError("Эта запись относится к другой тренировке")
-        return Attendance(booking, at)
+        attendance = Attendance(booking, at)
+        booking.client.membership.register_usage()  # полиморфный вызов
+        return attendance
 
     def __str__(self):
         return f"Тренировка: {self.name} ({self.trainer.name}, {self.start_time})"
