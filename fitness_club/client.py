@@ -12,18 +12,19 @@ class Client:
     def has_active_membership(self, on_date=None):
         return self.membership is not None and self.membership.is_active(on_date)
 
-    def book(self, training, at):
+    def book(self, training, at, connection=None):
         if not self.has_active_membership(at.date()):
             raise ValueError("Нельзя записаться без действующего абонемента")
-
         booking = Booking(self, training, at)
         training.add_booking(booking)
+        if connection is not None:  # сохраняем в БД только если явно попросили
+            booking.save(connection)
         return booking
 
-    def cancel_booking(self, booking):
+    def cancel_booking(self, booking, connection=None):
         if booking.client is not self:
             raise ValueError("Нельзя отменить чужую запись")
-        booking.cancel()
+        booking.cancel(connection)
 
     def __str__(self):
         return f"Клиент: {self.name}"

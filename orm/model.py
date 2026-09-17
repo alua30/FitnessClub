@@ -2,7 +2,6 @@ from db.connection import get_connection
 
 
 class Model:
-
     table_name: str = None
     fields: list = []
 
@@ -16,7 +15,7 @@ class Model:
     def from_row(cls, row: dict):
         raise NotImplementedError
 
-    def save(self, connection=None):
+    def save(self, connection=None, commit=True):
         connection = connection or get_connection()
         data = self.to_row()
         if self.id is None:
@@ -31,14 +30,16 @@ class Model:
             query = f"UPDATE {self.table_name} SET {set_clause} WHERE id = %s"
             with connection.cursor() as cur:
                 cur.execute(query, [*data.values(), self.id])
-        connection.commit()
+        if commit:
+            connection.commit()
         return self.id
 
-    def delete(self, connection=None):
+    def delete(self, connection=None, commit=True):
         connection = connection or get_connection()
         with connection.cursor() as cur:
             cur.execute(f"DELETE FROM {self.table_name} WHERE id = %s", (self.id,))
-        connection.commit()
+        if commit:
+            connection.commit()
         self.id = None
 
     @classmethod
@@ -57,5 +58,20 @@ class Model:
         connection = connection or get_connection()
         with connection.cursor() as cur:
             cur.execute(f"SELECT id FROM {cls.table_name}")
+            ids = [r[0] for r in cur.fetchall()]
+        return [cls.get(i, connection) for i in ids]
+
+    @classmethod
+    def filter(cls, connection=None, **conditions):
+        """Фильтрация по нескольким условиям равенства: Model.filter(field=value, ...)"""
+        connection = connection or get_connection()
+        query = f"SELECT id FROM {cls.table_name}"
+        params = []
+        if conditions:
+            where_clause = " AND ".join(f"{col} = %s" for col in conditions)
+            query += f" WHERE {where_clause}"
+            params = list(conditions.values())
+        with connection.cursor() as cur:
+            cur.execute(query, params)
             ids = [r[0] for r in cur.fetchall()]
         return [cls.get(i, connection) for i in ids]

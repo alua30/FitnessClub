@@ -29,3 +29,11 @@ CREATE TABLE IF NOT EXISTS trainings (
     duration_minutes INTEGER NOT NULL,
     capacity INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS bookings (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER NOT NULL REFERENCES clients(id),
+    training_id INTEGER NOT NULL REFERENCES trainings(id),
+    created_at TIMESTAMP NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active'
+);
