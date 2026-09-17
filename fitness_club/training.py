@@ -1,9 +1,13 @@
-from fitness_club.attendance import Attendance
+from orm.model import Model
+from fitness_club.trainer import Trainer
 
 
-class Training:
+class Training(Model):
+    table_name = "trainings"
+    fields = ["name", "trainer_id", "start_time", "duration_minutes", "capacity"]
+
     def __init__(self, name, trainer, start_time, duration_minutes, capacity):
-        self.id = None
+        super().__init__()
         self.name = name
         self.trainer = trainer
         self.start_time = start_time
@@ -34,9 +38,31 @@ class Training:
     def register_attendance(self, booking, at):
         if booking.training is not self:
             raise ValueError("Эта запись относится к другой тренировке")
+        from fitness_club.attendance import Attendance
         attendance = Attendance(booking, at)
-        booking.client.membership.register_usage()  # полиморфный вызов
+        booking.client.membership.register_usage()
         return attendance
+
+    def save(self, connection=None):
+        if self.trainer.id is None:
+            self.trainer.save(connection)
+        return super().save(connection)
+
+    def to_row(self):
+        return {
+            "name": self.name,
+            "trainer_id": self.trainer.id,
+            "start_time": self.start_time,
+            "duration_minutes": self.duration_minutes,
+            "capacity": self.capacity,
+        }
+
+    @classmethod
+    def from_row(cls, row):
+        trainer = Trainer.get(row["trainer_id"])
+        obj = cls(row["name"], trainer, row["start_time"], row["duration_minutes"], row["capacity"])
+        obj.id = row["id"]
+        return obj
 
     def __str__(self):
         return f"Тренировка: {self.name} ({self.trainer.name}, {self.start_time})"
