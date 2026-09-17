@@ -1,11 +1,10 @@
 from fitness_club.client import Client
 from fitness_club.membership import TimeLimitedMembership, VisitLimitedMembership
-from repositories.base import Repository
+from repositories.base import BaseRepository
 
 
-class ClientRepository(Repository):
-    def __init__(self, connection):
-        self._connection = connection
+class ClientRepository(BaseRepository):
+    table_name = "clients"
 
     def _save_membership(self, membership):
         if membership is None:
@@ -47,33 +46,19 @@ class ClientRepository(Repository):
 
     def save(self, client):
         membership_id = self._save_membership(client.membership)
-        with self._connection.cursor() as cur:
-            cur.execute(
-                """INSERT INTO clients (name, phone, email, membership_id)
-                   VALUES (%s, %s, %s, %s) RETURNING id""",
-                (client.name, client.phone, client.email, membership_id),
-            )
-            client.id = cur.fetchone()[0]
-        self._connection.commit()
-        return client.id
+        self._pending_membership_id = membership_id
+        return super().save(client)
 
-    def get_by_id(self, client_id):
-        with self._connection.cursor() as cur:
-            cur.execute(
-                "SELECT name, phone, email, membership_id FROM clients WHERE id = %s",
-                (client_id,),
-            )
-            row = cur.fetchone()
-        if row is None:
-            return None
-        name, phone, email, membership_id = row
-        client = Client(name, phone, email)
-        client.id = client_id
-        client.membership = self._load_membership(membership_id)
+    def _to_row(self, client):
+        return {
+            "name": client.name,
+            "phone": client.phone,
+            "email": client.email,
+            "membership_id": self._pending_membership_id,
+        }
+
+    def _from_row(self, row):
+        client = Client(row["name"], row["phone"], row["email"])
+        client.id = row["id"]
+        client.membership = self._load_membership(row["membership_id"])
         return client
-
-    def list(self):
-        with self._connection.cursor() as cur:
-            cur.execute("SELECT id FROM clients")
-            ids = [r[0] for r in cur.fetchall()]
-        return [self.get_by_id(i) for i in ids]
