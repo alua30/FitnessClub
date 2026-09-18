@@ -43,10 +43,10 @@ class Training(Model):
         booking.client.membership.register_usage()
         return attendance
 
-    def save(self, connection=None):
+    def save(self, connection=None, commit=True):
         if self.trainer.id is None:
-            self.trainer.save(connection)
-        return super().save(connection)
+            self.trainer.save(connection, commit)
+        return super().save(connection, commit)
 
     def to_row(self):
         return {

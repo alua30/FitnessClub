@@ -23,7 +23,7 @@ class Booking(Model):
 
     def cancel(self, connection=None, commit=True):
         self._status = "cancelled"
-        if self.id is not None and connection is not None:
+        if self.id is not None:
             self.save(connection, commit)
 
     def to_row(self):
@@ -36,7 +36,7 @@ class Booking(Model):
 
     @classmethod
     def from_row(cls, row):
-        from repositories.client_repository import ClientRepository  # отложенный импорт — разрывает цикл
+        from repositories.client_repository import ClientRepository
 
         connection = get_connection()
         training = Training.get(row["training_id"], connection)

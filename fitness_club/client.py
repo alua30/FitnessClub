@@ -17,7 +17,7 @@ class Client:
             raise ValueError("Нельзя записаться без действующего абонемента")
         booking = Booking(self, training, at)
         training.add_booking(booking)
-        if connection is not None:  # сохраняем в БД только если явно попросили
+        if connection is not None:
             booking.save(connection)
         return booking
 
