@@ -16,6 +16,10 @@ class BookingRepositorySA:
         booking._status = orm_obj.status
         return booking
 
+    def get_by_id(self, booking_id):
+        orm_obj = self._session.get(BookingORM, booking_id)
+        return self._to_domain(orm_obj) if orm_obj else None
+
     def save(self, booking):
         if booking.id is None:
             orm_obj = BookingORM(

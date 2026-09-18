@@ -26,7 +26,14 @@ class Training(Model):
         return self.active_bookings_count() < self.capacity
 
     def has_active_booking_for(self, client):
-        return any(b.client is client and b.is_active() for b in self._bookings)
+        for b in self._bookings:
+            if not b.is_active():
+                continue
+            if b.client is client:
+                return True
+            if b.client.id is not None and client.id is not None and b.client.id == client.id:
+                return True
+        return False
 
     def add_booking(self, booking):
         if not self.has_free_slots():

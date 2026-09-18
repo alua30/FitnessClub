@@ -43,6 +43,9 @@ class ClientRepositorySA:
         else:
             orm_obj = self._session.get(ClientORM, client.id)
             orm_obj.name = client.name
+            orm_obj.phone = client.phone
+            orm_obj.email = client.email
+            orm_obj.membership_id = membership_id  # добавлено — раньше пропускалось
         return client.id
 
     def get_by_id(self, client_id):
